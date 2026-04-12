@@ -139,7 +139,7 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center mt-5 pt-4 border-top text-muted" style={{ fontSize: '11px' }}>
-            © 2026 RentFlow. All rights reserved.
+            © 2026. All rights reserved.
           </div>
         </div>
       </footer>
