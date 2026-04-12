@@ -1,5 +1,24 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './pages/public/LandingPage';
+import Login from './pages/auth/Login';
+import Signup from './pages/auth/Signup';
+
+
 function App() {
-  return <h1></h1>;
+  return (
+    <Router>
+      <Routes>
+        
+        <Route path="/" element={<LandingPage />} />
+
+        
+        <Route path="/login" element={<Login />} />
+
+       
+        <Route path="/signup" element={<Signup />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;
