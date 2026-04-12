@@ -46,14 +46,14 @@ export default function LandingPage() {
             
             {/* Right Content / Image Placeholder */}
             <div className="col-lg-6 text-center">
-              {/* NOTE: Pinalitan ko muna ng stylized placeholder. Palitan mo ng <img src={yourImage} className="img-fluid" /> kapag may image ka na. */}
+              
               <div 
                 className="rounded-4 d-flex align-items-center justify-content-center shadow-sm w-100" 
                 style={{ height: '400px', backgroundColor: '#f0f9ff', border: '2px dashed #bae6fd' }}
               >
                 <div className="text-center" style={{ color: '#0ea5e9' }}>
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mb-2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                  <p className="fw-semibold m-0">3D Hero Image Here</p>
+                  <p className="fw-semibold m-0">IMAGE</p>
                 </div>
               </div>
             </div>
