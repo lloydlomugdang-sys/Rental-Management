@@ -1,4 +1,7 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
+import rentixLogo from '../../assets/RentixLogo.jpg';
+import rentixName from '../../assets/RentixName.jpg';
 
 export default function LandingPage() {
   return (
@@ -6,15 +9,27 @@ export default function LandingPage() {
       
       {/* 1. HEADER  */}
       <header className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom w-100 bg-white" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
+        
+        {/* DITO NATIN NILAGAY YUNG LOGO */}
         <div className="d-flex align-items-center gap-2">
-          
-         
+          <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
+            <img
+              src={rentixLogo}
+              alt="Rentix Logo"
+              style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+            />
+            <img
+              src={rentixName}
+              alt="Rentix Name"
+              style={{ height: '18px', objectFit: 'contain' }}
+            />
+          </Link>
         </div>
         
         <div className="d-flex align-items-center gap-4 text-muted" style={{ fontSize: '14px' }}>
-          <span style={{ cursor: 'pointer' }} className="hover-primary">Browse</span>
-          <span style={{ cursor: 'pointer' }} className="hover-primary">Contact Us</span>
-          <Link to="/login" className="btn btn-outline-secondary px-3 py-1 rounded-pill" style={{ fontSize: '13px' }}>
+          <Link to="/browse" className="text-decoration-none text-muted fw-semibold hover-primary">Browse</Link>
+          <span style={{ cursor: 'pointer' }} className="fw-semibold hover-primary">Contact Us</span>
+          <Link to="/login" className="btn btn-outline-secondary px-4 py-1 rounded-pill fw-semibold" style={{ fontSize: '13px' }}>
             Sign In
           </Link>
         </div>
@@ -28,15 +43,15 @@ export default function LandingPage() {
             {/* Left Content */}
             <div className="col-lg-5 mb-5 mb-lg-0">
               <h1 className="fw-bolder text-dark mb-3" style={{ fontSize: '3.5rem', lineHeight: '1.1', letterSpacing: '-1px' }}>
-                Rental <br />
-                Management, <br />
-                <span style={{ color: '#0ea5e9' }}>System</span>
+                Rent Made Easy  <br />
+                with <br />
+                <span style={{ color: '#0ea5e9' }}>Rentix</span>
               </h1>
               <p className="text-muted mb-4" style={{ fontSize: '1.1rem', maxWidth: '400px', lineHeight: '1.6' }}>
                 Streamline your property operations with an all-in-one platform built for modern landlords and property managers.
               </p>
               <Link 
-                to="/Signup" 
+                to="/signup" 
                 className="btn text-white px-4 py-2 rounded-pill shadow-sm fw-bold" 
                 style={{ backgroundColor: '#0ea5e9', fontSize: '15px' }}
               >
@@ -46,14 +61,13 @@ export default function LandingPage() {
             
             {/* Right Content / Image Placeholder */}
             <div className="col-lg-6 text-center">
-              
               <div 
                 className="rounded-4 d-flex align-items-center justify-content-center shadow-sm w-100" 
                 style={{ height: '400px', backgroundColor: '#f0f9ff', border: '2px dashed #bae6fd' }}
               >
                 <div className="text-center" style={{ color: '#0ea5e9' }}>
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mb-2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                  <p className="fw-semibold m-0">IMAGE</p>
+                  <p className="fw-semibold m-0">System Dashboard Preview Here</p>
                 </div>
               </div>
             </div>
@@ -108,9 +122,20 @@ export default function LandingPage() {
       <footer className="w-100 bg-white" style={{ borderTop: '1px solid #eaeaea' }}>
         <div className="container py-5">
           <div className="row justify-content-between">
-            {/* Brand Column */}
+            {/* Brand Column - NILAGYAN DIN NATIN NG LOGO DITO */}
             <div className="col-lg-4 mb-4 mb-lg-0">
-              
+              <div className="d-flex align-items-center gap-2 mb-3">
+                <img
+                  src={rentixLogo}
+                  alt="Rentix Logo"
+                  style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+                />
+                <img
+                  src={rentixName}
+                  alt="Rentix Name"
+                  style={{ height: '15px', objectFit: 'contain' }}
+                />
+              </div>
               <p className="text-muted" style={{ fontSize: '12px', maxWidth: '250px' }}>
                 Modern rental property management for landlords and tenants.
               </p>

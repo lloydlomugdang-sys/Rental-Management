@@ -1,85 +1,117 @@
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { FiMail, FiLock } from 'react-icons/fi';
+import rentixLogo from '../../assets/RentixLogo.jpg';
+import rentixName from '../../assets/RentixName.jpg';
 
 export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      // Pagkatapos mag-login, ididirekta sa dashboard
+      navigate('/tenant/dashboard');
+    } catch (err) {
+      const errorMsg = typeof err === 'string' ? err : err.response?.data?.message || "Login failed. Please check your credentials.";
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="d-flex flex-column min-vh-100 bg-white m-0 p-0" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="d-flex flex-column min-vh-100 bg-light" style={{ fontFamily: 'Inter, sans-serif' }}>
       
-      {/* HEADER (Same format as Signup) */}
-      <header className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom w-100">
-        <div className="d-flex align-items-center gap-2">
-          
-     
-        </div>
+      {/* HEADER / NAVBAR */}
+      <header className="d-flex justify-content-between align-items-center px-4 py-3 bg-white border-bottom w-100">
+        <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
+          <img src={rentixLogo} alt="Logo" style={{ width: '32px' }} />
+          <img src={rentixName} alt="Name" style={{ height: '20px' }} />
+        </Link>
         
-        <div className="d-flex align-items-center gap-4 text-muted" style={{ fontSize: '14px' }}>
-          <span style={{ cursor: 'pointer' }}>Browse</span>
-          <span style={{ cursor: 'pointer' }}>Contact Us</span>
-          {/* Link points to Signup page instead */}
-          <Link to="/signup" className="btn btn-outline-secondary px-3 py-1 rounded-pill" style={{ fontSize: '13px' }}>
+        <div className="d-flex align-items-center gap-4" style={{ fontSize: '14px' }}>
+          <Link to="/browse" className="text-decoration-none text-dark fw-semibold d-none d-sm-block">Browse</Link>
+          <Link to="/contact" className="text-decoration-none text-muted d-none d-sm-block">Contact Us</Link>
+          <Link 
+            to="/signup" 
+            className="btn btn-outline-secondary rounded-pill px-4"
+            style={{ fontSize: '14px', fontWeight: '500' }}
+          >
             Sign Up
           </Link>
         </div>
       </header>
 
-      {/* MAIN FORM AREA */}
-      <main className="flex-grow-1 d-flex align-items-center justify-content-center bg-light w-100 py-5">
-        <div 
-          className="card bg-white border-0 p-4 p-md-5" 
-          style={{ width: '100%', maxWidth: '400px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-        >
-          <h2 className="text-center fw-bold text-dark mb-1" style={{ fontSize: '24px' }}>Welcome Back</h2>
-          <p className="text-center text-muted mb-4" style={{ fontSize: '13px' }}>
-            Sign in to manage your properties
-          </p>
+      {/* MAIN LOGIN FORM */}
+      <main className="flex-grow-1 d-flex align-items-center justify-content-center w-100 py-5">
+        <div className="card bg-white border-0 p-4 p-md-5 shadow-sm" style={{ width: '100%', maxWidth: '450px', borderRadius: '12px' }}>
+          <div className="text-center mb-4">
+            <h3 className="fw-bold mb-2">Welcome Back</h3>
+            <p className="text-muted small">Sign in to manage your properties</p>
+          </div>
 
-          <form>
-            {/* Email Address */}
+          {error && <div className="alert alert-danger py-2 text-center" style={{ fontSize: '13px' }}>{error}</div>}
+
+          <form onSubmit={handleSubmit}>
+            {/* EMAIL ADDRESS */}
             <div className="mb-3">
-              <label className="text-start d-block fw-semibold text-dark mb-1" style={{ fontSize: '12px' }}>Email Address</label>
+              <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Email Address</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted px-3" style={{ borderRadius: '8px 0 0 8px' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                </span>
-                <input type="email" className="form-control border-start-0 shadow-none py-2 px-0" placeholder="you@example.com" style={{ fontSize: '14px', borderRadius: '0 8px 8px 0' }}/>
+                <span className="input-group-text bg-white border-end-0 text-muted"><FiMail /></span>
+                <input 
+                  type="email" className="form-control border-start-0 ps-0 shadow-none py-2" 
+                  placeholder="name@gmail.com" style={{ fontSize: '14px' }}
+                  value={email} onChange={(e) => setEmail(e.target.value)} required 
+                />
               </div>
             </div>
 
-            {/* Password */}
+            {/* PASSWORD */}
             <div className="mb-2">
-              <label className="text-start d-block fw-semibold text-dark mb-1" style={{ fontSize: '12px' }}>Password</label>
+              <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Password</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted px-3" style={{ borderRadius: '8px 0 0 8px' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                </span>
-                <input type="password" className="form-control border-start-0 shadow-none py-2 px-0" placeholder="••••••••" style={{ fontSize: '14px', borderRadius: '0 8px 8px 0' }}/>
+                <span className="input-group-text bg-white border-end-0 text-muted"><FiLock /></span>
+                <input 
+                  type="password" className="form-control border-start-0 ps-0 shadow-none py-2" 
+                  placeholder="••••••••" style={{ fontSize: '14px' }}
+                  value={password} onChange={(e) => setPassword(e.target.value)} required 
+                />
               </div>
             </div>
 
-            {/* Forgot Password Link */}
+            {/* FORGOT PASSWORD LINK */}
             <div className="text-end mb-4">
-              <a href="#" className="text-decoration-none" style={{ fontSize: '12px', color: '#0ea5e9', fontWeight: '500' }}>
+              <Link to="/forgot-password" className="text-decoration-none small fw-semibold" style={{ color: '#0ea5e9', fontSize: '12px' }}>
                 Forgot password?
-              </a>
+              </Link>
             </div>
-            
-            {/* Login Button */}
+
             <button 
               type="submit" 
-              className="btn w-100 py-2 text-white fw-bold border-0 shadow-sm"
-              style={{ backgroundColor: '#0ea5e9', borderRadius: '8px', fontSize: '14px' }}
+              className="btn w-100 py-2 text-white fw-bold border-0" 
+              style={{ backgroundColor: '#0ea5e9', borderRadius: '6px' }}
+              disabled={loading}
             >
-              Log In
+              {loading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
 
-          {/* Footer Link */}
           <div className="text-center mt-4" style={{ fontSize: '13px' }}>
             <span className="text-muted">Don't have an account? </span>
-            <Link to="/signup" className="text-decoration-none fw-bold" style={{ color: '#0ea5e9' }}>
-              Sign Up
-            </Link>
+            <Link to="/signup" className="text-decoration-none fw-bold" style={{ color: '#0ea5e9' }}>Sign Up</Link>
           </div>
-          
         </div>
       </main>
     </div>
