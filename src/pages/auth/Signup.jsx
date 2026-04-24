@@ -2,42 +2,85 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FiUser, FiMail, FiPhone, FiLock } from 'react-icons/fi';
-import rentixLogo from '../../assets/RentixLogo.jpg'; // I-check kung tama ang path mo
-import rentixName from '../../assets/RentixName.jpg'; // I-check kung tama ang path mo
+import rentixLogo from '../../assets/RentixLogo.jpg'; 
+import rentixName from '../../assets/RentixName.jpg'; 
 
 export default function Signup() {
-  // Mga States para sa form
+  // Input States
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
-  // Mga States para sa UI loading at errors
+  // Validation at Feedback States
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   
   const { registerUser } = useAuth();
   const navigate = useNavigate();
 
+  // Helper function para sa Email
+  const isValidEmail = (email) => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
+  // Helper function para sa Password
+  const isValidPassword = (password) => {
+    // Minimum 8 characters, at least 1 number, 1 uppercase letter
+    const re = /^(?=.*\d)(?=.*[A-Z]).{8,}$/;
+    return re.test(password);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({}); // Reset muna natin ang errors bago mag-check ulit
+    let hasError = false;
+    let newErrors = {};
 
-    // Harangin kung hindi parehas ang password
-    if (password !== confirmPassword) {
-      return setError("Passwords do not match.");
+    // --- FRONTEND VALIDATION ---
+
+    if (!name.trim()) {
+      newErrors.name = "Full name is required.";
+      hasError = true;
     }
 
-    setLoading(true);
+    if (!isValidEmail(email)) {
+      newErrors.email = "Please enter a valid email address.";
+      hasError = true;
+    }
 
+    if (contactNumber.length < 11) {
+        newErrors.contactNumber = "Contact number must be at least 11 digits.";
+        hasError = true;
+    }
+
+    if (!isValidPassword(password)) {
+      newErrors.password = "Password must be at least 8 characters, with 1 uppercase letter and 1 number.";
+      hasError = true;
+    }
+
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match.";
+      hasError = true;
+    }
+
+    // Kung may na-detect na error, ilalabas natin sa screen at HINDI itutuloy sa backend
+    if (hasError) {
+      setFieldErrors(newErrors);
+      return; 
+    }
+
+    // --- BACKEND SUBMISSION ---
+    
+    setLoading(true);
     try {
-      // Ipapasa ang lahat sa AuthContext
       await registerUser(name, email, contactNumber, password); 
-      
-      // Pag successful, lipat agad sa dashboard
-      navigate('/tenant/dashboard');
+      navigate('/tenant/dashboard'); // Lipat sa dashboard pag success!
     } catch (err) {
+      // Dito papasok yung general error galing sa server (e.g., "Email already exists")
       const errorMsg = typeof err === 'string' ? err : err.response?.data?.message || "Registration failed. Please try again.";
       setError(errorMsg);
     } finally {
@@ -48,7 +91,7 @@ export default function Signup() {
   return (
     <div className="d-flex flex-column min-vh-100 bg-light" style={{ fontFamily: 'Inter, sans-serif' }}>
       
-      {/* HEADER NAVBAR */}
+      {/* HEADER / NAVBAR */}
       <header className="d-flex justify-content-between align-items-center px-4 py-3 bg-white border-bottom w-100">
         <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
           <img src={rentixLogo} alt="Logo" style={{ width: '32px' }} />
@@ -68,7 +111,7 @@ export default function Signup() {
         </div>
       </header>
 
-      {/* MAIN REGISTRATION FORM */}
+      {/* MAIN FORM AREA */}
       <main className="flex-grow-1 d-flex align-items-center justify-content-center w-100 py-5">
         <div className="card bg-white border-0 p-4 p-md-5 shadow-sm" style={{ width: '100%', maxWidth: '450px', borderRadius: '12px' }}>
           <div className="text-center mb-4">
@@ -76,67 +119,83 @@ export default function Signup() {
             <p className="text-muted small">Join Rentix to simplify your rental experience</p>
           </div>
 
+          {/* General Server Error Message */}
           {error && <div className="alert alert-danger py-2 text-center" style={{ fontSize: '13px' }}>{error}</div>}
 
           <form onSubmit={handleSubmit}>
+            {/* FULL NAME */}
             <div className="mb-3">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Full Name</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted"><FiUser /></span>
+                <span className={`input-group-text bg-white border-end-0 ${fieldErrors.name ? 'border-danger text-danger' : 'text-muted'}`}><FiUser /></span>
                 <input 
-                  type="text" className="form-control border-start-0 ps-0 shadow-none py-2" 
+                  type="text" 
+                  className={`form-control border-start-0 ps-0 shadow-none py-2 ${fieldErrors.name ? 'is-invalid border-danger' : ''}`}
                   placeholder="e.g. John Doe" style={{ fontSize: '14px' }}
                   value={name} onChange={(e) => setName(e.target.value)} required 
                 />
               </div>
+              {fieldErrors.name && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.name}</div>}
             </div>
 
+            {/* EMAIL ADDRESS */}
             <div className="mb-3">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Email Address</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted"><FiMail /></span>
+                <span className={`input-group-text bg-white border-end-0 ${fieldErrors.email ? 'border-danger text-danger' : 'text-muted'}`}><FiMail /></span>
                 <input 
-                  type="email" className="form-control border-start-0 ps-0 shadow-none py-2" 
+                  type="email" 
+                  className={`form-control border-start-0 ps-0 shadow-none py-2 ${fieldErrors.email ? 'is-invalid border-danger' : ''}`}
                   placeholder="name@gmail.com" style={{ fontSize: '14px' }}
                   value={email} onChange={(e) => setEmail(e.target.value)} required 
                 />
               </div>
+              {fieldErrors.email && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.email}</div>}
             </div>
 
+            {/* CONTACT NUMBER */}
             <div className="mb-3">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Contact Number</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted"><FiPhone /></span>
+                <span className={`input-group-text bg-white border-end-0 ${fieldErrors.contactNumber ? 'border-danger text-danger' : 'text-muted'}`}><FiPhone /></span>
                 <input 
-                  type="tel" className="form-control border-start-0 ps-0 shadow-none py-2" 
+                  type="tel" 
+                  className={`form-control border-start-0 ps-0 shadow-none py-2 ${fieldErrors.contactNumber ? 'is-invalid border-danger' : ''}`}
                   placeholder="09123456789" style={{ fontSize: '14px' }}
                   value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} required 
                 />
               </div>
+              {fieldErrors.contactNumber && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.contactNumber}</div>}
             </div>
 
+            {/* PASSWORD */}
             <div className="mb-3">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Password</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted"><FiLock /></span>
+                <span className={`input-group-text bg-white border-end-0 ${fieldErrors.password ? 'border-danger text-danger' : 'text-muted'}`}><FiLock /></span>
                 <input 
-                  type="password" className="form-control border-start-0 ps-0 shadow-none py-2" 
+                  type="password" 
+                  className={`form-control border-start-0 ps-0 shadow-none py-2 ${fieldErrors.password ? 'is-invalid border-danger' : ''}`}
                   placeholder="••••••••" style={{ fontSize: '14px' }}
-                  value={password} onChange={(e) => setPassword(e.target.value)} required minLength="6"
+                  value={password} onChange={(e) => setPassword(e.target.value)} required 
                 />
               </div>
+              {fieldErrors.password && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.password}</div>}
             </div>
 
+            {/* CONFIRM PASSWORD */}
             <div className="mb-4">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Confirm Password</label>
               <div className="input-group">
-                <span className="input-group-text bg-white border-end-0 text-muted"><FiLock /></span>
+                <span className={`input-group-text bg-white border-end-0 ${fieldErrors.confirmPassword ? 'border-danger text-danger' : 'text-muted'}`}><FiLock /></span>
                 <input 
-                  type="password" className="form-control border-start-0 ps-0 shadow-none py-2" 
+                  type="password" 
+                  className={`form-control border-start-0 ps-0 shadow-none py-2 ${fieldErrors.confirmPassword ? 'is-invalid border-danger' : ''}`}
                   placeholder="••••••••" style={{ fontSize: '14px' }}
-                  value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength="6"
+                  value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required 
                 />
               </div>
+               {fieldErrors.confirmPassword && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.confirmPassword}</div>}
             </div>
 
             <button 
@@ -145,7 +204,7 @@ export default function Signup() {
               style={{ backgroundColor: '#0ea5e9', borderRadius: '6px' }}
               disabled={loading}
             >
-              {loading ? 'Creating...' : 'Sign Up'}
+              {loading ? 'Creating Account...' : 'Sign Up'}
             </button>
           </form>
 

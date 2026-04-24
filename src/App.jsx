@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Public & Auth Pages
 import LandingPage from './pages/public/LandingPage';
 import Browse from './pages/public/Browse'; 
+import UnitDetails from './pages/public/UnitDetails'; 
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
 
@@ -22,12 +23,12 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/browse" element={<Browse />} /> 
+        <Route path="/units/:id" element={<UnitDetails />} /> 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         
 
         {/* Protected Tenant Routes */}
-        {/* Pansinin na isa lang ang /tenant wrapper dito */}
         <Route path="/tenant" element={<TenantLayout />}>
           <Route path="dashboard" element={<TenantDashboard />} />
           <Route path="payments" element={<Payments />} />
