@@ -8,13 +8,13 @@ export default function Maintenance() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Form States (Na-update base sa schema mo: title, description, priority)
-  const [unitId, setUnitId] = useState(''); // Kailangan ng unitId base sa controller mo
+  // Form States 
+  const [unitId, setUnitId] = useState(''); 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState('low'); // Default ay low
+  const [priority, setPriority] = useState('low'); 
   
-  // States para sa feedback
+  // States for feedback
   const [submitLoading, setSubmitLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -39,7 +39,7 @@ export default function Maintenance() {
     fetchRequests();
   }, []);
 
-  // Computations for Summary Cards (Na-update base sa lowercase enums mo)
+  // Computations for Summary Cards 
   const openCount = requests.filter(r => r.status === 'open').length;
   const inProgressCount = requests.filter(r => r.status === 'in-progress').length;
   const resolvedCount = requests.filter(r => r.status === 'resolved').length;
@@ -54,10 +54,7 @@ export default function Maintenance() {
     try {
       const token = localStorage.getItem('token');
       
-      // Temporary check: dahil kailangan ng unitId sa backend mo, 
-      // ipinagpalagay kong kukunin muna natin ito sa first request kung meron na,
-      // O mas maganda, kukunin mo ito sa Lease details ng tenant kung may context ka.
-      // For now, kung walang manual input, isesend natin.
+      
       if (!unitId) {
           setErrorMsg("Please enter your Unit ID.");
           setSubmitLoading(false);
@@ -79,14 +76,12 @@ export default function Maintenance() {
       // Refresh the table
       fetchRequests();
     } catch (err) {
-      // Sasaluhin natin yung error sa controller (e.g. "You can only submit for your rented unit")
       setErrorMsg(err.response?.data?.message || "Failed to submit request.");
     } finally {
       setSubmitLoading(false);
     }
   };
 
-  // Helper para sa magandang status badge
   const getStatusBadge = (status) => {
     switch (status) {
       case 'resolved': return <span className="badge bg-success-subtle text-success rounded-pill px-3 py-1">RESOLVED</span>;
@@ -95,7 +90,7 @@ export default function Maintenance() {
     }
   };
 
-  // Helper para sa magandang priority badge
+  
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'high': return <span className="text-danger fw-bold small">High</span>;
