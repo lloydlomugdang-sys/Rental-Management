@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { FiTool, FiCheckCircle } from 'react-icons/fi';
+import { FiTool, FiCheckCircle, FiInfo } from 'react-icons/fi';
 
 export default function Maintenance() {
   const { user } = useAuth();
@@ -9,7 +9,7 @@ export default function Maintenance() {
   const [loading, setLoading] = useState(true);
 
   // Form States 
-  const [unitId, setUnitId] = useState(''); 
+  const [unitId, setUnitId] = useState(''); // Ito ay magiging auto-filled!
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('low'); 
@@ -19,15 +19,34 @@ export default function Maintenance() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // 1. Fetch Tenant's Maintenance Requests
-  const fetchRequests = async () => {
+  // 1. Fetch Initial Data (Lease details AND Maintenance Requests)
+  const fetchInitialData = async () => {
     try {
       const token = localStorage.getItem('token');
-      // Match the endpoint in maintenanceRoutes.js
-      const res = await axios.get('http://localhost:8000/api/maintenance/my/requests', {
+      
+      // A. Kunin muna ang Lease para makuha ang Unit ID
+      try {
+        const leaseRes = await axios.get('http://localhost:8000/api/leases/my/lease', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Pag nakuha ang lease, i-save ang ID ng unit sa state
+        if (leaseRes.data.lease && leaseRes.data.lease.unitId) {
+          // Kukunin ang ID, whether naka-populate o string format
+          const fetchedUnitId = leaseRes.data.lease.unitId._id || leaseRes.data.lease.unitId;
+          setUnitId(fetchedUnitId);
+        }
+      } catch (leaseErr) {
+        console.error("No active lease found or error fetching lease.", leaseErr);
+        // Okay lang na mag-error ito kung sakaling walang lease ang user.
+      }
+
+      // B. Kunin ang Maintenance Requests
+      const reqRes = await axios.get('http://localhost:8000/api/maintenance/my/requests', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setRequests(res.data.requests || []);
+      setRequests(reqRes.data.requests || []);
+      
     } catch (err) {
       console.error("Error fetching requests:", err);
     } finally {
@@ -36,7 +55,7 @@ export default function Maintenance() {
   };
 
   useEffect(() => {
-    fetchRequests();
+    fetchInitialData();
   }, []);
 
   // Computations for Summary Cards 
@@ -54,9 +73,8 @@ export default function Maintenance() {
     try {
       const token = localStorage.getItem('token');
       
-      
       if (!unitId) {
-          setErrorMsg("Please enter your Unit ID.");
+          setErrorMsg("You must have an active lease to submit a request.");
           setSubmitLoading(false);
           return;
       }
@@ -68,13 +86,17 @@ export default function Maintenance() {
 
       setSuccessMsg("Maintenance request submitted successfully.");
       
-      // Reset form
+      // Reset form (Hindi ire-reset ang unitId para makapag-submit ulit kung sakali)
       setTitle('');
       setDescription('');
       setPriority('low');
       
-      // Refresh the table
-      fetchRequests();
+      // Refresh the table silently
+      const reqRes = await axios.get('http://localhost:8000/api/maintenance/my/requests', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRequests(reqRes.data.requests || []);
+
     } catch (err) {
       setErrorMsg(err.response?.data?.message || "Failed to submit request.");
     } finally {
@@ -90,7 +112,6 @@ export default function Maintenance() {
     }
   };
 
-  
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'high': return <span className="text-danger fw-bold small">High</span>;
@@ -138,22 +159,25 @@ export default function Maintenance() {
               
               {successMsg && <div className="alert alert-success py-2 text-center small"><FiCheckCircle className="me-2"/>{successMsg}</div>}
               {errorMsg && <div className="alert alert-danger py-2 text-center small">{errorMsg}</div>}
+              
+              {!loading && !unitId && (
+                <div className="alert alert-warning py-2 small d-flex gap-2 mb-3">
+                  <FiInfo size={18} />
+                  <span>You need an active lease to report an issue.</span>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="small fw-semibold mb-2">Unit ID (Temporary) <span className="text-danger">*</span></label>
-                  <input type="text" className="form-control" placeholder="Paste your Unit Object ID here" value={unitId} onChange={(e) => setUnitId(e.target.value)} required />
-                  <small className="text-muted" style={{fontSize: '11px'}}>We need this to match the backend requirement.</small>
-                </div>
+                {/* INALIS NA ANG UNIT ID INPUT DITO */}
                 
                 <div className="mb-3">
                   <label className="small fw-semibold mb-2">Issue Title <span className="text-danger">*</span></label>
-                  <input type="text" className="form-control" placeholder="e.g. Leaking Faucet" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                  <input type="text" className="form-control" placeholder="e.g. Leaking Faucet" value={title} onChange={(e) => setTitle(e.target.value)} required disabled={!unitId} />
                 </div>
 
                 <div className="mb-3">
                   <label className="small fw-semibold mb-2">Priority <span className="text-danger">*</span></label>
-                  <select className="form-select" value={priority} onChange={(e) => setPriority(e.target.value)} required>
+                  <select className="form-select" value={priority} onChange={(e) => setPriority(e.target.value)} required disabled={!unitId}>
                     <option value="low">Low (Minor repairs)</option>
                     <option value="medium">Medium (Annoyance but livable)</option>
                     <option value="high">High (Emergency / Safety Hazard)</option>
@@ -162,10 +186,10 @@ export default function Maintenance() {
 
                 <div className="mb-4">
                   <label className="small fw-semibold mb-2">Description <span className="text-danger">*</span></label>
-                  <textarea className="form-control" rows="4" placeholder="Describe the issue in detail..." value={description} onChange={(e) => setDescription(e.target.value)} required></textarea>
+                  <textarea className="form-control" rows="4" placeholder="Describe the issue in detail..." value={description} onChange={(e) => setDescription(e.target.value)} required disabled={!unitId}></textarea>
                 </div>
                 
-                <button type="submit" className="btn btn-primary w-100 fw-bold py-2" style={{ backgroundColor: '#0ea5e9', border: 'none' }} disabled={submitLoading}>
+                <button type="submit" className={`btn btn-primary w-100 fw-bold py-2 ${!unitId ? 'disabled bg-secondary' : ''}`} style={{ backgroundColor: unitId ? '#0ea5e9' : '', border: 'none' }} disabled={submitLoading || !unitId}>
                   {submitLoading ? 'Submitting...' : 'Submit Request'}
                 </button>
               </form>

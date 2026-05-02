@@ -15,6 +15,9 @@ import LeaseInfo from './pages/renter/LeaseInfo';
 import Maintenance from './pages/renter/Maintenance';
 import HelpReports from './pages/renter/HelpReports';
 
+// Admin/Landlord Interface
+// Inayos natin ang path base sa structure na sinend mo
+import { LandingPage as LandlordDashboard } from './landlord/LandingPage';
 
 function App() {
   return (
@@ -27,7 +30,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         
-
         {/* Protected Tenant Routes */}
         <Route path="/tenant" element={<TenantLayout />}>
           <Route path="dashboard" element={<TenantDashboard />} />
@@ -36,6 +38,10 @@ function App() {
           <Route path="maintenance" element={<Maintenance />} />
           <Route path="help" element={<HelpReports />} />
         </Route>
+
+        {/* Protected Admin Routes */}
+        {/* Dito papasok ang admin account sa tamang dashboard */}
+        <Route path="/admin/dashboard" element={<LandlordDashboard />} />
 
       </Routes>
     </Router>

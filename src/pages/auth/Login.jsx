@@ -20,9 +20,15 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      // Pagkatapos mag-login, ididirekta sa dashboard
-      navigate('/tenant/dashboard');
+      // Nagbabalik ito ng user object mula sa AuthContext
+      const user = await login(email, password);
+      
+      // Dynamic Routing: Check kung Admin o Tenant
+      if (user?.role === 'admin') {
+        navigate('/admin/dashboard'); 
+      } else {
+        navigate('/tenant/dashboard');
+      }
     } catch (err) {
       const errorMsg = typeof err === 'string' ? err : err.response?.data?.message || "Login failed. Please check your credentials.";
       setError(errorMsg);
@@ -65,7 +71,6 @@ export default function Login() {
           {error && <div className="alert alert-danger py-2 text-center" style={{ fontSize: '13px' }}>{error}</div>}
 
           <form onSubmit={handleSubmit}>
-            {/* EMAIL ADDRESS */}
             <div className="mb-3">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Email Address</label>
               <div className="input-group">
@@ -78,7 +83,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* PASSWORD */}
             <div className="mb-2">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Password</label>
               <div className="input-group">
@@ -91,7 +95,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* FORGOT PASSWORD LINK */}
             <div className="text-end mb-4">
               <Link to="/forgot-password" className="text-decoration-none small fw-semibold" style={{ color: '#0ea5e9', fontSize: '12px' }}>
                 Forgot password?
