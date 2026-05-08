@@ -8,11 +8,11 @@ export default function Payments() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Form States para sa Upload
+  // Form States for Upload
   const [selectedPaymentId, setSelectedPaymentId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [refNumber, setRefNumber] = useState('');
-  const [fileBase64, setFileBase64] = useState(''); // Gagamitin natin as proofOfPayment
+  const [fileBase64, setFileBase64] = useState(''); 
   const [fileName, setFileName] = useState('');
   
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -21,9 +21,13 @@ export default function Payments() {
 
   // 1. Fetch Tenant's Payments
   const fetchPayments = async () => {
+    if (user?.role !== 'tenant') {
+      setLoading(false);
+      return; 
+    }
+
     try {
       const token = localStorage.getItem('token');
-      // Pinalitan natin yung endpoint base sa backend mo
       const res = await axios.get('http://localhost:8000/api/payments/my/payments', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -37,24 +41,25 @@ export default function Payments() {
   };
 
   useEffect(() => {
-    fetchPayments();
-  }, []);
+    if (user) {
+        fetchPayments();
+    }
+  }, [user]);
 
-  // 2. Computations para sa Dashboard Cards
+  // 2. Computations for Dashboard Cards
   const totalPaid = payments
     .filter(p => p.status === 'verified')
-    .reduce((sum, p) => sum + p.amount, 0);
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
 
   const remainingBalance = payments
-    .filter(p => p.status === 'pending' || p.status === 'overdue' || !p.status)
-    .reduce((sum, p) => sum + p.remainingBalance, 0);
+    .filter(p => p.status !== 'verified')
+    .reduce((sum, p) => sum + (p.remainingBalance || p.amount || 0), 0);
 
   const hasOverdue = payments.some(p => p.status === 'overdue');
 
-  // Mga unpaid bills na pwede nilang bayaran sa Form
-  const unpaidBills = payments.filter(p => p.status !== 'verified' && p.status !== 'pending');
+  const unpaidBills = payments.filter(p => p.status !== 'verified');
 
-  // 3. Handle File Upload (Convert to Base64 para masave string sa MongoDB)
+  // 3. Handle File Upload 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -80,13 +85,10 @@ export default function Payments() {
     try {
       const token = localStorage.getItem('token');
       
-      // I-format yung payment method para kasama yung ref number
-      const methodWithRef = `${paymentMethod} - Ref: ${refNumber}`;
-
-      // POST request gamit ang logic ng controller mo (recordTenantPayment)
       await axios.post(`http://localhost:8000/api/payments/${selectedPaymentId}/record`, 
         { 
-          paymentMethod: methodWithRef, 
+          paymentMethod: paymentMethod,  
+          referenceNumber: refNumber,    
           proofOfPayment: fileBase64 
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -94,14 +96,12 @@ export default function Payments() {
 
       setSuccessMsg("Payment submitted successfully! Waiting for admin verification.");
       
-      // I-reset ang form
       setPaymentMethod('');
       setRefNumber('');
       setFileBase64('');
       setFileName('');
       setSelectedPaymentId('');
       
-      // I-refresh ang table
       fetchPayments();
 
     } catch (err) {
@@ -111,7 +111,29 @@ export default function Payments() {
     }
   };
 
-  if (loading) return <div className="p-5 text-center text-muted min-vh-100">Loading payment details...</div>;
+  if (!user || loading) return <div className="p-5 text-center text-muted min-vh-100">Loading payment details...</div>;
+
+  if (user?.role !== 'tenant') {
+    return (
+      <div className="p-4 bg-light min-vh-100" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <div className="mb-4">
+          <h2 className="fw-bold mb-1">Payments</h2>
+          <p className="text-muted small">View your payment history and submit new payment receipts.</p>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-md-8 mx-auto">
+            <div className="card border-0 shadow-sm p-5 text-center">
+              <h3 className="fw-bold text-secondary mb-3">No Active Lease</h3>
+              <p className="text-muted fs-5 mb-0">
+                Payments will be available once your application is approved and an official lease is created by the landlord.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 bg-light min-vh-100" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -223,9 +245,9 @@ export default function Payments() {
                 <label className="small fw-semibold mb-2">Payment Method <span className="text-danger">*</span></label>
                 <select className="form-select" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} required disabled={unpaidBills.length === 0}>
                   <option value="">Select Method</option>
-                  <option value="GCash">GCash</option>
-                  <option value="Maya">Maya</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="gcash">GCash</option>
+                  <option value="maya">Maya</option>
+                  <option value="bank transfer">Bank Transfer</option>
                 </select>
               </div>
 
@@ -239,20 +261,41 @@ export default function Payments() {
               </div>
             </div>
 
-            {/* FILE UPLOAD */}
+            {/* BAGO: FILE UPLOAD WITH IMAGE PREVIEW */}
             <div className="mb-4">
               <label className="small fw-semibold mb-2">Proof of Payment <span className="text-danger">*</span></label>
               <div 
-                className={`border rounded-3 p-5 text-center bg-light ${unpaidBills.length === 0 ? 'opacity-50' : ''}`}
+                className={`border rounded-3 p-4 text-center bg-light ${unpaidBills.length === 0 ? 'opacity-50' : ''}`}
                 style={{ borderStyle: 'dashed !important', cursor: unpaidBills.length === 0 ? 'not-allowed' : 'pointer' }}
                 onClick={() => unpaidBills.length > 0 && document.getElementById('fileInput').click()}
               >
                 <input type="file" id="fileInput" className="d-none" accept="image/*,application/pdf" onChange={handleFileChange} disabled={unpaidBills.length === 0} />
-                <div className="mb-2"><FiUpload size={32} color="#0ea5e9"/></div>
-                <p className="fw-semibold mb-1 small">Click to upload screenshot</p>
-                <p className="text-muted" style={{ fontSize: '11px' }}>
-                  {fileName ? <strong className="text-success">Selected: {fileName}</strong> : 'PNG, JPG or PDF (max. 5MB)'}
-                </p>
+                
+                {fileBase64 ? (
+                  // KUNG MAY NA-SELECT NA FILE: Magpakita ng preview!
+                  <div>
+                    {/* Check natin kung image yung in-upload para ma-preview, kung PDF, icon lang */}
+                    {fileBase64.startsWith('data:image') ? (
+                      <img 
+                        src={fileBase64} 
+                        alt="Receipt Preview" 
+                        style={{ maxHeight: '180px', maxWidth: '100%', objectFit: 'contain', borderRadius: '8px', marginBottom: '12px' }} 
+                      />
+                    ) : (
+                      <div className="mb-2"><FiCheckCircle size={40} color="#10b981"/></div>
+                    )}
+                    <p className="fw-semibold mb-1 small text-success">Selected: {fileName}</p>
+                    <p className="text-muted mb-0" style={{ fontSize: '11px' }}>Click anywhere in this box to change file</p>
+                  </div>
+                ) : (
+                  // KUNG WALA PANG NA-SELECT: Ipakita yung default upload icon
+                  <div>
+                    <div className="mb-2"><FiUpload size={32} color="#0ea5e9"/></div>
+                    <p className="fw-semibold mb-1 small">Click to upload screenshot</p>
+                    <p className="text-muted mb-0" style={{ fontSize: '11px' }}>PNG, JPG or PDF (max. 5MB)</p>
+                  </div>
+                )}
+                
               </div>
             </div>
 

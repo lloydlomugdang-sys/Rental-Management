@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiUser, FiMail, FiPhone, FiLock } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'; // BAGO: Idinagdag ang FiEye at FiEyeOff
 import rentixLogo from '../../assets/RentixLogo.jpg'; 
 import rentixName from '../../assets/RentixName.jpg'; 
 
 export default function Signup() {
-  // Input States
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
-  // Validation at Feedback States
+  // BAGO: States para sa password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -21,14 +23,11 @@ export default function Signup() {
   const { registerUser } = useAuth();
   const navigate = useNavigate();
 
-  // Helper function para sa Email
   const isValidEmail = (email) => {
     return /\S+@\S+\.\S+/.test(email);
   };
 
-  // Helper function para sa Password
   const isValidPassword = (password) => {
-    // Minimum 8 characters, at least 1 number, 1 uppercase letter
     const re = /^(?=.*\d)(?=.*[A-Z]).{8,}$/;
     return re.test(password);
   };
@@ -36,11 +35,9 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setFieldErrors({}); // Reset muna natin ang errors bago mag-check ulit
+    setFieldErrors({}); 
     let hasError = false;
     let newErrors = {};
-
-    // --- FRONTEND VALIDATION ---
 
     if (!name.trim()) {
       newErrors.name = "Full name is required.";
@@ -67,20 +64,16 @@ export default function Signup() {
       hasError = true;
     }
 
-    // Kung may na-detect na error, ilalabas natin sa screen at HINDI itutuloy sa backend
     if (hasError) {
       setFieldErrors(newErrors);
       return; 
     }
 
-    // --- BACKEND SUBMISSION ---
-    
     setLoading(true);
     try {
       await registerUser(name, email, contactNumber, password); 
-      navigate('/tenant/dashboard'); // Lipat sa dashboard pag success!
+      navigate('/tenant/dashboard'); 
     } catch (err) {
-      // Dito papasok yung general error galing sa server (e.g., "Email already exists")
       const errorMsg = typeof err === 'string' ? err : err.response?.data?.message || "Registration failed. Please try again.";
       setError(errorMsg);
     } finally {
@@ -91,7 +84,6 @@ export default function Signup() {
   return (
     <div className="d-flex flex-column min-vh-100 bg-light" style={{ fontFamily: 'Inter, sans-serif' }}>
       
-      {/* HEADER / NAVBAR */}
       <header className="d-flex justify-content-between align-items-center px-4 py-3 bg-white border-bottom w-100">
         <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
           <img src={rentixLogo} alt="Logo" style={{ width: '32px' }} />
@@ -111,7 +103,6 @@ export default function Signup() {
         </div>
       </header>
 
-      {/* MAIN FORM AREA */}
       <main className="flex-grow-1 d-flex align-items-center justify-content-center w-100 py-5">
         <div className="card bg-white border-0 p-4 p-md-5 shadow-sm" style={{ width: '100%', maxWidth: '450px', borderRadius: '12px' }}>
           <div className="text-center mb-4">
@@ -119,11 +110,9 @@ export default function Signup() {
             <p className="text-muted small">Join Rentix to simplify your rental experience</p>
           </div>
 
-          {/* General Server Error Message */}
           {error && <div className="alert alert-danger py-2 text-center" style={{ fontSize: '13px' }}>{error}</div>}
 
           <form onSubmit={handleSubmit}>
-            {/* FULL NAME */}
             <div className="mb-3">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Full Name</label>
               <div className="input-group">
@@ -138,7 +127,6 @@ export default function Signup() {
               {fieldErrors.name && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.name}</div>}
             </div>
 
-            {/* EMAIL ADDRESS */}
             <div className="mb-3">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Email Address</label>
               <div className="input-group">
@@ -153,7 +141,6 @@ export default function Signup() {
               {fieldErrors.email && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.email}</div>}
             </div>
 
-            {/* CONTACT NUMBER */}
             <div className="mb-3">
               <label className="fw-bold d-block mb-1" style={{ fontSize: '12px' }}>Contact Number</label>
               <div className="input-group">
@@ -162,7 +149,12 @@ export default function Signup() {
                   type="tel" 
                   className={`form-control border-start-0 ps-0 shadow-none py-2 ${fieldErrors.contactNumber ? 'is-invalid border-danger' : ''}`}
                   placeholder="09123456789" style={{ fontSize: '14px' }}
-                  value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} required 
+                  value={contactNumber} 
+                  onChange={(e) => {
+                    const onlyNums = e.target.value.replace(/\D/g, ''); 
+                    if (onlyNums.length <= 11) setContactNumber(onlyNums);
+                  }} 
+                  required 
                 />
               </div>
               {fieldErrors.contactNumber && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.contactNumber}</div>}
@@ -174,11 +166,18 @@ export default function Signup() {
               <div className="input-group">
                 <span className={`input-group-text bg-white border-end-0 ${fieldErrors.password ? 'border-danger text-danger' : 'text-muted'}`}><FiLock /></span>
                 <input 
-                  type="password" 
-                  className={`form-control border-start-0 ps-0 shadow-none py-2 ${fieldErrors.password ? 'is-invalid border-danger' : ''}`}
+                  type={showPassword ? "text" : "password"} 
+                  className={`form-control border-start-0 border-end-0 ps-0 shadow-none py-2 ${fieldErrors.password ? 'is-invalid border-danger' : ''}`}
                   placeholder="••••••••" style={{ fontSize: '14px' }}
                   value={password} onChange={(e) => setPassword(e.target.value)} required 
                 />
+                <span 
+                  className={`input-group-text bg-white border-start-0 ${fieldErrors.password ? 'border-danger text-danger' : 'text-muted'}`} 
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </span>
               </div>
               {fieldErrors.password && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.password}</div>}
             </div>
@@ -189,11 +188,18 @@ export default function Signup() {
               <div className="input-group">
                 <span className={`input-group-text bg-white border-end-0 ${fieldErrors.confirmPassword ? 'border-danger text-danger' : 'text-muted'}`}><FiLock /></span>
                 <input 
-                  type="password" 
-                  className={`form-control border-start-0 ps-0 shadow-none py-2 ${fieldErrors.confirmPassword ? 'is-invalid border-danger' : ''}`}
+                  type={showConfirmPassword ? "text" : "password"} 
+                  className={`form-control border-start-0 border-end-0 ps-0 shadow-none py-2 ${fieldErrors.confirmPassword ? 'is-invalid border-danger' : ''}`}
                   placeholder="••••••••" style={{ fontSize: '14px' }}
                   value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required 
                 />
+                <span 
+                  className={`input-group-text bg-white border-start-0 ${fieldErrors.confirmPassword ? 'border-danger text-danger' : 'text-muted'}`} 
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                </span>
               </div>
                {fieldErrors.confirmPassword && <div className="text-danger mt-1" style={{ fontSize: '11px' }}>{fieldErrors.confirmPassword}</div>}
             </div>

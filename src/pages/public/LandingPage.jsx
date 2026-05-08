@@ -10,7 +10,6 @@ export default function LandingPage() {
       {/* 1. HEADER  */}
       <header className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom w-100 bg-white" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
         
-        {/* DITO NATIN NILAGAY YUNG LOGO */}
         <div className="d-flex align-items-center gap-2">
           <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
             <img
@@ -122,7 +121,6 @@ export default function LandingPage() {
       <footer className="w-100 bg-white" style={{ borderTop: '1px solid #eaeaea' }}>
         <div className="container py-5">
           <div className="row justify-content-between">
-            {/* Brand Column - NILAGYAN DIN NATIN NG LOGO DITO */}
             <div className="col-lg-4 mb-4 mb-lg-0">
               <div className="d-flex align-items-center gap-2 mb-3">
                 <img

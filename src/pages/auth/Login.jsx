@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiMail, FiLock } from 'react-icons/fi';
+import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'; // BAGO: Idinagdag ang FiEye at FiEyeOff
 import rentixLogo from '../../assets/RentixLogo.jpg';
 import rentixName from '../../assets/RentixName.jpg';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // BAGO: State para sa password toggle
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -20,10 +21,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Nagbabalik ito ng user object mula sa AuthContext
       const user = await login(email, password);
       
-      // Dynamic Routing: Check kung Admin o Tenant
       if (user?.role === 'admin') {
         navigate('/admin/dashboard'); 
       } else {
@@ -40,7 +39,6 @@ export default function Login() {
   return (
     <div className="d-flex flex-column min-vh-100 bg-light" style={{ fontFamily: 'Inter, sans-serif' }}>
       
-      {/* HEADER / NAVBAR */}
       <header className="d-flex justify-content-between align-items-center px-4 py-3 bg-white border-bottom w-100">
         <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
           <img src={rentixLogo} alt="Logo" style={{ width: '32px' }} />
@@ -60,7 +58,6 @@ export default function Login() {
         </div>
       </header>
 
-      {/* MAIN LOGIN FORM */}
       <main className="flex-grow-1 d-flex align-items-center justify-content-center w-100 py-5">
         <div className="card bg-white border-0 p-4 p-md-5 shadow-sm" style={{ width: '100%', maxWidth: '450px', borderRadius: '12px' }}>
           <div className="text-center mb-4">
@@ -88,10 +85,19 @@ export default function Login() {
               <div className="input-group">
                 <span className="input-group-text bg-white border-end-0 text-muted"><FiLock /></span>
                 <input 
-                  type="password" className="form-control border-start-0 ps-0 shadow-none py-2" 
+                  type={showPassword ? "text" : "password"} // BAGO: Dynamic type
+                  className="form-control border-start-0 border-end-0 ps-0 shadow-none py-2" 
                   placeholder="••••••••" style={{ fontSize: '14px' }}
                   value={password} onChange={(e) => setPassword(e.target.value)} required 
                 />
+                {/* BAGO: Clickable Eye Icon */}
+                <span 
+                  className="input-group-text bg-white border-start-0 text-muted" 
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </span>
               </div>
             </div>
 

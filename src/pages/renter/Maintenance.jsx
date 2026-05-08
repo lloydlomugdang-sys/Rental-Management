@@ -21,6 +21,14 @@ export default function Maintenance() {
 
   // 1. Fetch Initial Data (Lease details AND Maintenance Requests)
   const fetchInitialData = async () => {
+    // === BAGO: SMART CHECK PARA SA MGA APPLICANTS ===
+    // Kung hindi pa "tenant" ang user, huwag na natin ipilit i-fetch ang data
+    // para hindi lumabas yung 403 Error sa console!
+    if (user?.role !== 'tenant') {
+      setLoading(false);
+      return; 
+    }
+
     try {
       const token = localStorage.getItem('token');
       
@@ -32,13 +40,11 @@ export default function Maintenance() {
         
         // Pag nakuha ang lease, i-save ang ID ng unit sa state
         if (leaseRes.data.lease && leaseRes.data.lease.unitId) {
-          // Kukunin ang ID, whether naka-populate o string format
           const fetchedUnitId = leaseRes.data.lease.unitId._id || leaseRes.data.lease.unitId;
           setUnitId(fetchedUnitId);
         }
       } catch (leaseErr) {
         console.error("No active lease found or error fetching lease.", leaseErr);
-        // Okay lang na mag-error ito kung sakaling walang lease ang user.
       }
 
       // B. Kunin ang Maintenance Requests
@@ -55,8 +61,10 @@ export default function Maintenance() {
   };
 
   useEffect(() => {
-    fetchInitialData();
-  }, []);
+    if (user) {
+      fetchInitialData();
+    }
+  }, [user]);
 
   // Computations for Summary Cards 
   const openCount = requests.filter(r => r.status === 'open').length;
@@ -86,7 +94,7 @@ export default function Maintenance() {
 
       setSuccessMsg("Maintenance request submitted successfully.");
       
-      // Reset form (Hindi ire-reset ang unitId para makapag-submit ulit kung sakali)
+      // Reset form
       setTitle('');
       setDescription('');
       setPriority('low');
@@ -119,6 +127,32 @@ export default function Maintenance() {
       default: return <span className="text-success fw-bold small">Low</span>;
     }
   };
+
+  if (!user || loading) return <div className="p-5 text-center text-muted min-vh-100">Loading maintenance details...</div>;
+
+  // === BAGO: CONDITIONAL RENDERING PARA SA APPLICANTS ===
+  if (user?.role !== 'tenant') {
+    return (
+      <div className="p-4 bg-light min-vh-100" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <div className="mb-4">
+          <h2 className="fw-bold mb-1">Maintenance Requests</h2>
+          <p className="text-muted small">Report issues in your unit and track repair progress.</p>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-md-8 mx-auto">
+            <div className="card border-0 shadow-sm p-5 text-center">
+              <h3 className="fw-bold text-secondary mb-3">No Active Lease</h3>
+              <p className="text-muted fs-5 mb-0">
+                Maintenance requests are only available for official tenants with an active lease. Please wait for your application to be approved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // ========================================================
 
   return (
     <div className="p-4 bg-light min-vh-100" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -168,8 +202,6 @@ export default function Maintenance() {
               )}
 
               <form onSubmit={handleSubmit}>
-                {/* INALIS NA ANG UNIT ID INPUT DITO */}
-                
                 <div className="mb-3">
                   <label className="small fw-semibold mb-2">Issue Title <span className="text-danger">*</span></label>
                   <input type="text" className="form-control" placeholder="e.g. Leaking Faucet" value={title} onChange={(e) => setTitle(e.target.value)} required disabled={!unitId} />

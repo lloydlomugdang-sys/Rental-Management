@@ -9,8 +9,8 @@ import {
   FiFilter, 
   FiX, 
   FiCheckCircle,
-  FiChevronLeft,   // IDINAGDAG PARA SA CAROUSEL
-  FiChevronRight   // IDINAGDAG PARA SA CAROUSEL
+  FiChevronLeft,
+  FiChevronRight 
 } from 'react-icons/fi';
 
 import rentixLogo from '../../assets/RentixLogo.jpg'; 
@@ -124,7 +124,8 @@ export default function Browse() {
           {!user ? (
             <Link to="/login" className="btn btn-outline-secondary rounded-pill px-4" style={{ fontSize: '14px', fontWeight: '500' }}>Sign In</Link>
           ) : (
-            <Link to="/dashboard" className="btn btn-primary rounded-pill px-4 text-white" style={{ backgroundColor: '#0ea5e9', border: 'none', fontSize: '14px', fontWeight: '500' }}>
+            // DITO YUNG NA-UPDATE NA LINK ROUTE
+            <Link to="/tenant/dashboard" className="btn btn-primary rounded-pill px-4 text-white" style={{ backgroundColor: '#0ea5e9', border: 'none', fontSize: '14px', fontWeight: '500' }}>
               Go to Dashboard
             </Link>
           )}

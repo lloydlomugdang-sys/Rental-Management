@@ -4,12 +4,11 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Apply() {
-  const { id } = useParams(); // Kukunin natin yung Unit ID sa URL
+  const { id } = useParams(); 
   const navigate = useNavigate();
-  const { user } = useAuth(); // Kukunin natin yung user kung nakalogin
-
+  const { user } = useAuth(); 
   const [unit, setUnit] = useState(null);
-  const [moveInDate, setMoveInDate] = useState(''); // Bagong state para sa backend mo
+  const [moveInDate, setMoveInDate] = useState(''); 
   const [message, setMessage] = useState('');
   
   const [loading, setLoading] = useState(true);
@@ -17,13 +16,11 @@ export default function Apply() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Kunin yung details ng unit na ina-applyan
   useEffect(() => {
     const fetchUnit = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/api/units/${id}`);
-        // Base sa controller mo, "unit" ba o "units" ang sagot? I-a-assume kong unit.
-        // Pwede mong ayusin ito kung nasa array siya.
+       
         setUnit(res.data.unit || res.data.units?.find(u => u._id === id)); 
       } catch (err) {
         setError("Failed to load unit details. It might have been removed.");
@@ -37,7 +34,7 @@ export default function Apply() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Form Validation sa Frontend
+    // Form Validation for fe
     if (!user) return setError("You must be logged in to apply.");
     if (!moveInDate) return setError("Please select your target move-in date.");
 
@@ -46,16 +43,16 @@ export default function Apply() {
 
     try {
       const token = localStorage.getItem('token');
-      // MATCHED SA BACKEND: pinapasa na natin ang unitId, moveInDate, at message
+      
       await axios.post('http://localhost:8000/api/applications', 
         { unitId: id, moveInDate, message },
         { headers: { Authorization: `Bearer ${token}` } } 
       );
       
       setSuccess(true);
-      setTimeout(() => navigate('/tenant/dashboard'), 3000); // Lipat sa dashboard after 3 secs
+      setTimeout(() => navigate('/tenant/dashboard'), 3000); 
     } catch (err) {
-      // User Feedback: Sasaluhin natin yung mga error galing sa controller mo
+      // User Feedback
       setError(err.response?.data?.message || "Failed to submit application.");
     } finally {
       setSubmitLoading(false);
@@ -73,7 +70,7 @@ export default function Apply() {
         <div className="card border-0 shadow-sm p-4 p-md-5" style={{ borderRadius: '12px' }}>
           <h3 className="fw-bold mb-4">Rental Application</h3>
 
-          {/* Dito lalabas yung error messages mo tulad ng "You already have a pending application" */}
+          {/* error msg "You already have a pending application" */}
           {error && <div className="alert alert-danger py-2">{error}</div>}
           {success && <div className="alert alert-success py-2">Application submitted successfully! Redirecting to dashboard...</div>}
 
@@ -101,7 +98,7 @@ export default function Apply() {
                 <small className="text-muted" style={{ fontSize: '11px' }}>This information will be sent to the admin.</small>
               </div>
 
-              {/* BAGONG FIELD PARA SA BACKEND MO */}
+              {/* new field for be */}
               <div className="mb-3">
                 <label className="fw-bold small mb-2">Target Move-in Date <span className="text-danger">*</span></label>
                 <input 
@@ -109,7 +106,7 @@ export default function Apply() {
                   className="form-control" 
                   value={moveInDate}
                   onChange={(e) => setMoveInDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]} // Hindi pwedeng pumili ng past date
+                  min={new Date().toISOString().split("T")[0]} 
                   required
                 />
               </div>
